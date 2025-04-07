@@ -1,0 +1,54 @@
+services:
+  evolution-api:
+    container_name: evolution_api
+    image: atendai/evolution-api:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTHETICATION_API_KEY=mysecretpassword
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://evolution:evolution@postgres_evolution:5432/evolution
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379/6
+    volumes:
+      - evolution_instances:/evolution/instances
+    networks:
+      - evolution_network
+    depends_on:
+      - postgres_db
+      - redis
+  postgres_db:
+    container_name: postgres_evolution
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: evolution
+      POSTGRES_DB: evolution
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_evolution:/var/lib/postgresql/data
+    networks:
+      - evolution_network
+  redis:
+    container_name: redis_evolution
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_evolution:/data
+    networks:
+      - evolution_network
+      
+volumes:
+  evolution_instances:
+  postgres_evolution:
+  redis_evolution:
+
+networks:
+  evolution_network:
+    driver: bridge
